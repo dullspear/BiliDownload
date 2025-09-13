@@ -7,7 +7,7 @@ It sets up logging and handles the application lifecycle.
 
 import sys
 
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 from src.core.logger import get_logger
 from src.ui.main_window import MainWindow
