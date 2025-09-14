@@ -30,6 +30,8 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import Theme, setTheme
 
+from src.core.config_manager import ConfigManager
+from src.core.file_manager import FileManager
 from src.core.logger import get_logger
 
 
@@ -386,7 +388,7 @@ class TaskListTab(QWidget):
     # 定义信号
     task_action_requested = Signal(str, str)  # 任务ID, 动作
 
-    def __init__(self, task_manager, config_manager=None, file_manager=None):
+    def __init__(self, parent=None):
         """
         初始化任务列表标签页
 
@@ -395,11 +397,12 @@ class TaskListTab(QWidget):
             config_manager: 配置管理器实例
             file_manager: 文件管理器实例
         """
-        super().__init__()
+        super().__init__(parent=parent)
+        self.setObjectName("TaskListTab")
         setTheme(Theme.LIGHT)
-        self.task_manager = task_manager
-        self.config_manager = config_manager
-        self.file_manager = file_manager
+        self.task_manager = TaskManager()
+        self.config_manager = ConfigManager()
+        self.file_manager = FileManager()
         self.logger = get_logger(__name__)
         self.current_filter = "all"
         self.start_date = None
@@ -409,8 +412,6 @@ class TaskListTab(QWidget):
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.refresh_task_list)
         self.refresh_timer.start(1000)  # 每秒刷新一次
-        self.config_manager = config_manager
-        self.file_manager = file_manager
         self.logger = get_logger(__name__)
 
         # 当前显示的任务状态过滤
@@ -1001,3 +1002,18 @@ class TaskListTab(QWidget):
 
             self.refresh_task_list()
             QMessageBox.information(self, "提示", "清理完成")
+
+
+if __name__ == "__main__":
+    import sys
+
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+
+    # 创建任务列表标签页
+    task_list_tab = TaskListTab()
+    task_list_tab.resize(1000, 600)
+    task_list_tab.show()
+
+    sys.exit(app.exec())

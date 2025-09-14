@@ -31,10 +31,11 @@ from src.core.config_manager import ConfigManager
 class SettingsTab(QWidget):
     """设置标签页"""
 
-    def __init__(self, config_manager: ConfigManager):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setObjectName("SettingsTab")
         setTheme(Theme.LIGHT)
-        self.config_manager = config_manager
+        self.config_manager = ConfigManager()
         self.init_ui()
         self.load_settings()
 
@@ -590,3 +591,14 @@ class SettingsTab(QWidget):
         except Exception as e:
             self.ffmpeg_status_label.setText("❌ 错误")
             self.status_label.setText(f"FFmpeg测试出错: {str(e)}")
+
+
+if __name__ == "__main__":
+    import sys
+
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    settings_tab = SettingsTab()
+    settings_tab.show()
+    sys.exit(app.exec())

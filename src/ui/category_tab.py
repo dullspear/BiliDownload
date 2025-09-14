@@ -34,10 +34,11 @@ from src.core.config_manager import ConfigManager
 class CategoryTab(QWidget):
     """分类管理标签页"""
 
-    def __init__(self, config_manager: ConfigManager):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setObjectName("CategoryTab")
         setTheme(Theme.LIGHT)
-        self.config_manager = config_manager
+        self.config_manager = ConfigManager()
         self.init_ui()
         self.refresh_categories()
 
@@ -507,3 +508,19 @@ class CategoryTab(QWidget):
                         QMessageBox.warning(self, "失败", f"子分类 '{name}' 创建失败")
                 except Exception as e:
                     QMessageBox.critical(self, "错误", f"创建子分类时出错: {str(e)}")
+
+
+if __name__ == "__main__":
+    import sys
+
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("BiliDownload - 分类管理测试")
+    app.setApplicationVersion("1.0.0")
+
+    window = CategoryTab()
+    window.resize(1000, 600)
+    window.show()
+
+    sys.exit(app.exec())

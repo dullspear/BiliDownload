@@ -38,7 +38,9 @@ from PySide6.QtWidgets import (
 # Fluent Widgets 导入
 from qfluentwidgets import Theme, setTheme
 
+from src.core.config_manager import ConfigManager
 from src.core.downloader import BiliDownloader
+from src.core.file_manager import FileManager
 from src.core.logger import get_logger
 
 
@@ -72,6 +74,7 @@ class DownloadWorker(QThread):
             download_type (str): Type of download ("full", "audio", "video").
         """
         super().__init__()
+        self.setObjectName("DownloadWorker")
         self.url = url
         self.save_path = save_path
         self.ffmpeg_path = ffmpeg_path
@@ -127,7 +130,7 @@ class DownloadTab(QWidget):
     )  # task_id, url, title, save_path, download_type
     show_task_list_requested = Signal()  # 请求显示任务列表
 
-    def __init__(self, config_manager, file_manager=None, logger=None):
+    def __init__(self, parent=None):
         """
         Initialize the download tab.
 
@@ -137,12 +140,13 @@ class DownloadTab(QWidget):
             logger (optional): Logger instance for logging.
         """
 
-        super().__init__()
+        super().__init__(parent=parent)
+        self.setObjectName("DownloadTab")
         setTheme(Theme.LIGHT)
-        self.config_manager = config_manager
-        self.file_manager = file_manager
-        self.logger = logger or get_logger(__name__)
+        self.logger = get_logger(__name__)
         self.download_worker = None
+        self.config_manager = ConfigManager()
+        self.file_manager = FileManager()
 
         # Auto-fetch title timer
         self.auto_fetch_timer = QTimer()
@@ -1142,3 +1146,18 @@ class DownloadTab(QWidget):
             str: 下载类型 (full/audio/video)
         """
         return combo_box.currentData()
+
+
+if __name__ == "__main__":
+    import sys
+
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("BiliDownload")
+    app.setApplicationVersion("1.0.0")
+
+    download_tab = DownloadTab()
+    download_tab.show()
+
+    sys.exit(app.exec())

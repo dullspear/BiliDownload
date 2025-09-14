@@ -15,7 +15,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-from PySide6.QtCore import QSize, Qt, QThread, QTimer, Signal
+from PySide6.QtCore import QSize, Qt, QThread, Signal
 from PySide6.QtGui import QBrush, QColor, QCursor, QFont, QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -47,9 +47,15 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qfluentwidgets import FluentIcon as FIF
 
 # Fluent Widgets 导入
-from qfluentwidgets import FluentWindow, Theme, setTheme
+from qfluentwidgets import (
+    FluentWindow,
+    NavigationItemPosition,
+    Theme,
+    setTheme,
+)
 
 from src.core.config_manager import ConfigManager
 from src.core.file_manager import FileManager
@@ -70,7 +76,7 @@ class DownloadWorker(QThread):
         video_progress_updated (str, float): 视频下载进度信号 (任务ID, 进度百分比)
         audio_progress_updated (str, float): 音频下载进度信号 (任务ID, 进度百分比)
         merge_progress_updated (str, float): 合并进度信号 (任务ID, 进度百分比)
-        download_finished (str, bool, str): 下载完成信号 (任务ID, 是否成功, 消息)
+        download_finished (str, bool, str): 下载完成信号 (任务ID, 是否成功, 消消息)
         log_message (str, str, dict): 日志消息信号 (任务ID, 消息, 额外参数)
     """
 
@@ -317,56 +323,11 @@ class MainWindow(FluentWindow):
         self.file_manager = FileManager()
         self.task_manager = TaskManager(self.config_manager)
 
-        # Set window properties
-        self.setWindowTitle("BiliDownload - Bilibili Video Downloader")
-        self.setMinimumSize(1000, 600)
-        self.resize(1200, 700)
-
-        # Set window resize policy
-        try:
-            self.setSizeGripEnabled(True)
-        except AttributeError:
-            pass
-
-        # Set window resize event
-        self.resizeEvent = self.on_resize_event
-
         # Initialize UI
         self.init_ui()
 
         # Load configuration
         self.load_config()
-
-    def on_resize_event(self, event):
-        """
-        Handle window resize events.
-
-        Args:
-            event (QResizeEvent): Window resize event.
-
-        Returns:
-            None
-        """
-        super().resizeEvent(event)
-
-        # Delay saving window size to avoid frequent saves
-        QTimer.singleShot(500, self.save_window_size)
-
-    def save_window_size(self):
-        """
-        Save current window dimensions to configuration.
-
-        Silently records the new window size without logging.
-
-        Returns:
-            None
-        """
-        try:
-            # Silently save, don't print logs
-            pass
-        except Exception:
-            # Silent error handling, don't log
-            pass
 
     def load_config(self):
         """
@@ -377,12 +338,39 @@ class MainWindow(FluentWindow):
         Returns:
             None
         """
-        try:
-            width = int(self.config_manager.get("UI", "window_width", "1200"))
-            height = int(self.config_manager.get("UI", "window_height", "800"))
-            self.resize(width, height)
-        except Exception:
-            pass
+        # TODO: 临时注释以保持简洁，需确认是否有此需求
+        # try:
+        #     width = int(self.config_manager.get("UI", "window_width", "1200"))
+        #     height = int(self.config_manager.get("UI", "window_height", "800"))
+        #     self.resize(width, height)
+        # except Exception:
+        #     pass
+
+    def initNavigation(self):
+        """初始化导航"""
+        # 添加子界面
+        self.addSubInterface(self.download_interface, FIF.DOWNLOAD, "下载管理")
+
+        self.addSubInterface(self.task_list_interface, FIF.MENU, "任务列表")
+
+        self.addSubInterface(self.file_manager_interface, FIF.FOLDER, "文件管理")
+
+        self.addSubInterface(
+            self.setting_interface,
+            FIF.SETTING,
+            "设置",
+            position=NavigationItemPosition.BOTTOM,
+        )
+
+    def initWindow(self):
+        """初始化窗口"""
+        self.resize(1200, 800)
+        self.setWindowTitle("BiliDownload - Bilibili Video Downloader")
+
+        # 居中显示
+        desktop = QApplication.screens()[0].availableGeometry()
+        w, h = desktop.width(), desktop.height()
+        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
     def init_ui(self):
         """
@@ -398,9 +386,6 @@ class MainWindow(FluentWindow):
         self.setWindowTitle("BiliDownload - Bilibili Video Downloader")
         self.setMinimumSize(1000, 600)
         self.resize(1200, 700)
-
-        # Apply theme
-        self.apply_soft_theme()
 
         # Main layout
         main_layout = QVBoxLayout()
@@ -439,8 +424,6 @@ class MainWindow(FluentWindow):
         main_widget.setParent(self)
         self.setLayout(main_layout)
 
-        # Load initial data
-        self.load_config()
         self.refresh_download_paths_combo()
 
         # Refresh file display with default path
@@ -449,17 +432,6 @@ class MainWindow(FluentWindow):
             self.populate_file_table_for_path(default_path)
             if hasattr(self, "current_path_label"):
                 self.current_path_label.setText(default_path)
-
-    def apply_soft_theme(self):
-        """
-        Apply a soft, Cloudreve-like theme across the main window widgets.
-
-        Returns:
-            None
-        """
-
-        # This function intentionally left as a placeholder for any future theme tweaks.
-        return None
 
     def create_title_bar(self):
         """

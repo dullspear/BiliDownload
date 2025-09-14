@@ -46,7 +46,7 @@ class FileManagerTab(QWidget):
         current_directory (str): Absolute path of the directory currently displayed.
     """
 
-    def __init__(self, file_manager: FileManager, config_manager: ConfigManager):
+    def __init__(self, parent=None):
         """Initialize the FileManagerTab widget.
 
         Args:
@@ -54,10 +54,11 @@ class FileManagerTab(QWidget):
             config_manager : Accessor for download path and category paths.
         """
 
-        super().__init__()
+        super().__init__(parent=parent)
+        self.setObjectName("FileManagerTab")
         setTheme(Theme.LIGHT)
-        self.file_manager = file_manager
-        self.config_manager = config_manager
+        self.file_manager = FileManager()
+        self.config_manager = ConfigManager()
         self.current_directory = self.config_manager.get_download_path()
         self.init_ui()
         self.refresh_files()
@@ -620,3 +621,19 @@ class FileManagerTab(QWidget):
                     QMessageBox.warning(self, "失败", f"'{file_name}' 删除失败")
             except Exception as e:
                 QMessageBox.critical(self, "错误", f"删除文件时出错: {str(e)}")
+
+
+if __name__ == "__main__":
+    import sys
+
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("BiliDownload - 文件管理测试")
+    app.setApplicationVersion("1.0.0")
+
+    window = FileManagerTab()
+    window.resize(1200, 800)
+    window.show()
+
+    sys.exit(app.exec())
